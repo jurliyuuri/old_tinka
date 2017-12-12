@@ -231,7 +231,10 @@ class TinkaTranspiler(val inFiles: Array<String>) {
                 var varStack = 0
                 var varDictionary: MutableMap<String, Int> = mutableMapOf()
                 var rinyvStack: MutableList<String> = mutableListOf();
-                var count = 0;
+
+                var fiCount = 0
+                var falRinyvCount = 0
+                var falCount = 0
 
                 fun convert(opd: TinkaOperand, count: Int = 0): String {
                     return when(opd) {
@@ -249,7 +252,14 @@ class TinkaTranspiler(val inFiles: Array<String>) {
                             val lval = convert(opd.left)
                             val rval = convert(opd.right)
                             writer.println("fi ${lval} ${rval} ${opd.compare}")
-                            rinyvStack.add(0, "fi${(++count)}")
+                            rinyvStack.add(0, "fi${(fiCount++)}")
+                        }
+                        is Fal -> {
+                            val lval = convert(opd.left)
+                            val rval = convert(opd.right)
+                            writer.println("fi ${lval} ${rval} ${opd.compare} l' fal-rinyv${(falRinyvCount)}")
+                            rinyvStack.add(0, "fal-rinyv${(falRinyvCount++)}");
+                            rinyvStack.add(0, "fal${(falCount++)}");
                         }
                         is Anax -> {
                             varStack += opd.length
@@ -264,12 +274,18 @@ class TinkaTranspiler(val inFiles: Array<String>) {
                             val label = rinyvStack[0]
                             when {
                                 label.startsWith("fi") -> writer.println("malkrz ${label} xx")
+                                label.startsWith("fal") -> writer.println("malkrz ${label} xx")
                             }
                         }
                         is Situv -> {
                             val label = rinyvStack.removeAt(0)
                             when {
                                 label.startsWith("fi") -> writer.println("nll ${label}")
+                                label.startsWith("fal") -> {
+                                    val loop = rinyvStack.removeAt(0)
+                                    writer.println("krz ${loop} xx")
+                                    writer.println("nll ${label}")
+                                }
                             }
                         }
                         is Fenxeo -> {
