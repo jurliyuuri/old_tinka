@@ -136,14 +136,20 @@ class TinkaTranspiler(val inFiles: Array<String>) {
                 }
                 "cersva" -> {
                     label = wordList[++i]
+                    if(label[0] in '0'..'9') {
+                        throw RuntimeException("Bat cersva-akrapt '${label}'")
+                    }
+                    if(label == "'3126834864 ") {
+                        throw RuntimeException("Already define 'tvarlon-knloan'")
+                    }
                     subList = wordList.drop(i + 1)
                     rinyvIndex = subList.indexOf("rinyv")
 
                     if(rinyvIndex == -1) {
-                        throw Exception("Not found 'rinyv'")
+                        throw RuntimeException("Not found 'rinyv'")
                     }
                     else {
-                        funcList.add(Cersva(label, subList.take(rinyvIndex).map{ x -> AnaxName(x) }.toList()))
+                        list.add(Cersva(label, subList.take(rinyvIndex).map{ x -> AnaxName(x) }.toList()))
                         i += rinyvIndex
                     }
                 }
@@ -175,6 +181,13 @@ class TinkaTranspiler(val inFiles: Array<String>) {
                 }
                 "fenxeo" -> {
                     label = wordList[++i]
+                    if(label[0] in '0'..'9') {
+                        throw RuntimeException("Bad cersva-akrapt: '${label}'")
+                    }
+                    if(label == "'3126834864") {
+                        label = "3126834864"
+                    }
+
                     subList = wordList.drop(i + 1)
                     rinyvIndex = subList.indexOf("el")
 
@@ -231,15 +244,19 @@ class TinkaTranspiler(val inFiles: Array<String>) {
                 var varStack = 0
                 var varDictionary: MutableMap<String, Int> = mutableMapOf()
                 var rinyvStack: MutableList<String> = mutableListOf();
+                //var cersvaDictonary: MutableMap<String, Int> = mutableMapOf()
 
                 var fiCount = 0
                 var falRinyvCount = 0
                 var falCount = 0
+                //var cersvaStack = 0
 
                 fun convert(opd: TinkaOperand, count: Int = 0): String {
                     return when(opd) {
                         is Constant -> opd.value
-                        is AnaxName -> "f5+${((varStack - (varDictionary[opd.varName] as Int) + opd.pos + count) * 4)}@"
+                        is AnaxName -> {
+                            return "f5+${((varStack - (varDictionary[opd.varName] as Int) + opd.pos + count) * 4)}@"
+                        }
                         else -> throw RuntimeException("unknown")
                     }
                 }
@@ -268,7 +285,7 @@ class TinkaTranspiler(val inFiles: Array<String>) {
                         }
                         //is Cersva -> {
                         //    writer.println("nll ${opd.funcName}")
-                        //    isFunc = true
+                        //    rinyvStack.add(0, opd.funcName)
                         //}
                         is Rinyv -> {
                             val label = rinyvStack[0]
@@ -294,7 +311,7 @@ class TinkaTranspiler(val inFiles: Array<String>) {
                             }
                             writer.println("nta 4 f5 inj ${opd.funcName} xx f5@ ata ${((opd.arguments.size + 1) * 4)} f5 krz f0 ${convert(opd.setVar)}")
                         }
-                        //is Dosnud -> writer.println("krz ${opd.retVal} f0 krz f5@ xx")
+                        //is Dosnud -> writer.println("krz ${convert(opd.retVal)} f0 krz f5@ xx")
                         is Operation -> {
                             val args = opd.arguments.fold(StringBuilder(), {
                                 buffer, x -> buffer.append(" ").append(convert(x))
