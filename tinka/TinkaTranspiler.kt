@@ -137,7 +137,7 @@ class TinkaTranspiler(val inFiles: Array<String>) {
                 "cersva" -> {
                     label = wordList[++i]
                     if(label[0] in '0'..'9') {
-                        throw RuntimeException("Bat cersva-akrapt '${label}'")
+                        throw RuntimeException("Bad cersva-akrapt '${label}'")
                     }
                     if(label == "'3126834864 ") {
                         throw RuntimeException("Already define 'tvarlon-knloan'")
@@ -230,8 +230,8 @@ class TinkaTranspiler(val inFiles: Array<String>) {
         }
         else {
             return if(word.indexOf("@") != -1) {
-                val split = word.split("@")
-                AnaxName(split[0], split[1].toInt())
+                val split = word.split("@", ignoreCase = false, limit = 2)
+                AnaxName(split[0], toOperand(split[1]))
             } else {
                 AnaxName(word)
             }
@@ -255,9 +255,18 @@ class TinkaTranspiler(val inFiles: Array<String>) {
                     return when(opd) {
                         is Constant -> opd.value
                         is AnaxName -> {
-                            return "f5+${((varStack - (varDictionary[opd.varName] as Int) + opd.pos + count) * 4)}@"
+                            val pos = convert(opd.pos)
+                            if(opd.pos is Constant) {
+                                return "f5+${(varStack - (varDictionary[opd.varName] as Int) + pos.toInt() + count) * 4}@"
+                            }
+                            else {
+                                writer.println("krz ${pos} f0")
+                                writer.println("ata ${varStack - (varDictionary[opd.varName] as Int) + count} f0")
+                                writer.println("dro 2 f0")
+                                return "f5+f0@"
+                            }
                         }
-                        else -> throw RuntimeException("unknown")
+                        else -> throw RuntimeException("Invalid arguments: '${opd}'")
                     }
                 }
 

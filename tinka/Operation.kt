@@ -15,6 +15,6 @@ data class Operation(val mnemonic: String, val arguments: List<TinkaOperand>) : 
 
 sealed class TinkaOperand()
 data class Constant(val value: String) : TinkaOperand()
-data class AnaxName(val varName: String, val pos: Int = 0) : TinkaOperand()
+data class AnaxName(val varName: String, val pos: TinkaOperand = Constant("0")) : TinkaOperand()
 data class CersvaName(val funcName: String) : TinkaOperand()
 
