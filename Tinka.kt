@@ -22,4 +22,3 @@ fun main(args: Array<String>) {
         println("java -jar tinka.jar [inFileNames] (-o [outFileName])")
     }
 }
-
