@@ -355,8 +355,10 @@ class TinkaTranspiler(val inFiles: Array<String>) {
                 falCount = 0
 
                 writeExpression(expressions, writer)
-                writer.println("ata ${(varStack * 4)} f5 l' dosnud0");
-                writer.println("krz f5@ xx");
+                if(expressions.any{ x -> !(x is Kue || x is Xok)}) {
+                    writer.println("ata ${(varStack * 4)} f5 l' dosnud0");
+                    writer.println("krz f5@ xx");
+                }
 
                 varStack = 0
                 writeExpression(funcExpressions, writer)
@@ -371,6 +373,7 @@ class TinkaTranspiler(val inFiles: Array<String>) {
 
     private fun writeExpression(expressions: List<TinkaExpression>, writer: PrintWriter) {
         val isFunc = expressions.any { x -> x is Cersva }
+        var cersvaArgCount = 0
 
         for(opd in expressions) {
             when(opd) {
@@ -411,13 +414,23 @@ class TinkaTranspiler(val inFiles: Array<String>) {
                             writer.println("nll ${label}")
                         }
                         opd.count == 1 && isFunc -> {
-                            writer.println("krz f5@ xx l' dosnud${dosnudCount}")
+                            if(varStack > cersvaArgCount) {
+                                writer.println("ata ${((varStack - cersvaArgCount) * 4)} f5 l' dosnud${dosnudCount}")
+                                writer.println("krz f5@ xx")
+                            }
+                            else {
+                                writer.println("krz f5@ xx l' dosnud${dosnudCount}")
+                            }
                         }
                     }
                 }
                 is Fenxeo -> {
                     opd.arguments.forEachIndexed { i, x ->
-                        writer.println("nta 4 f5 krz ${convert(writer, x, i + 1)} f5@")
+                        //if(x.pointer) {
+                        //}
+                        //else {
+                            writer.println("nta 4 f5 krz ${convert(writer, x, i + 1)} f5@")
+                        //}
                     }
                     writer.println("nta 4 f5 inj ${opd.funcName} xx f5@ ata ${((opd.arguments.size + 1) * 4)} f5 krz f0 ${convert(writer, opd.setVar)}")
                 }
@@ -428,12 +441,15 @@ class TinkaTranspiler(val inFiles: Array<String>) {
                     writer.println("${opd.mnemonic}${args}")
                 }
                 is Cersva -> {
+                    varStack = 0
                     for(argOpd in opd.arguments) {
                         varDictionary[argOpd.varName] = varStack
                         varStack += argOpd.length
                     }
+                    cersvaArgCount = varStack
+
                     writer.println("\nnll ${opd.funcName}")
-                    rinyvStack.add(0, "${opd.funcName}");
+                    rinyvStack.add(0, "${opd.funcName}")
                     dosnudCount++
                 }
                 is Dosnud -> if(isFunc) {
