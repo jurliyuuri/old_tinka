@@ -1,14 +1,18 @@
 -- 変数の操作
-anax p
-anax F@10
-anax f
-anax a
+-- 今のところグローバル変数は不可
+cersva _fasal
+rinyv
+    anax p
+    anax F@10
+    anax f
+    anax a
 
-krz 10 p
--- まだF@pのようなことは出来ない
-krz 0 F@0
-krz 1 F@1
-krz 2 F@2
-krz 25 f
-ata p f
-krz f a
+    krz 10 p
+    krz 0 F@0
+    krz 1 F@1
+    krz 2 F@2
+    krz 25 f
+    ata p f
+    krz f a
+    dosnud 0
+situv

@@ -1,14 +1,19 @@
 -- fal文の例
 
-anax p
-anax F
-
-krz 1 p
-krz 0 F
-
-fal p xtlo 10
+cersva _fasal
 rinyv
-    ata p F
-    ata 1 p
+    anax p
+    anax F
+
+    krz 1 p
+    krz 0 F
+
+    fal p xtlo 10
+    rinyv
+        ata p F
+        ata 1 p
+    situv
+
+    dosnud 0
 situv
 

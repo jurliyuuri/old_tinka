@@ -1,16 +1,20 @@
 -- 関数作成・使用の例
 
-anax p
-anax F
-anax f
+cersva _fasal
+rinyv
+    anax p
+    anax F
+    anax f
 
-krz 10 p
-krz 13 F
+    krz 10 p
+    krz 13 F
 
-fenxeo jyv p F el f
+    fenxeo jyv p F el f
+
+    dosnud 0
+situv
 
 -- 関数の定義場所はどこでも問題無い
--- 今のところ，引数名はグローバル変数と被ってはいけない
 cersva jyv a b
 rinyv
     fi a xtlonys b
@@ -23,5 +27,4 @@ rinyv
         dosnud b
     situv
 situv
-
 

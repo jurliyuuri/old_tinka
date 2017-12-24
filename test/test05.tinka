@@ -1,30 +1,36 @@
 -- f@pとx@f@pの例
 
-anax p
-anax F
-anax f@10
-anax x@10
-
-krz 0 p
-krz 0 F
-krz 20 x@0
-krz 21 x@1
-krz 22 x@2
-krz 23 x@3
-krz 24 x@4
-krz 25 x@5
-krz 26 x@6
-krz 27 x@7
-krz 28 x@8
-krz 29 x@9
-
-fal p xylo 10
+cersva _fasal
 rinyv
-    krz p F
-    dro 2 F
-    krz F f@p
-    ata 1 p
+    anax p
+    anax F
+    anax f@10
+    anax x@10
+
+    krz 0 p
+    krz 0 F
+    krz 20 x@0
+    krz 21 x@1
+    krz 22 x@2
+    krz 23 x@3
+    krz 24 x@4
+    krz 25 x@5
+    krz 26 x@6
+    krz 27 x@7
+    krz 28 x@8
+    krz 29 x@9
+
+    fal p xylo 10
+    rinyv
+        krz p F
+        dro 2 F
+        krz F f@p
+        ata 1 p
+    situv
+
+    krz 1 p
+    krz 100 x@f@p
+
+    dosnud 0
 situv
 
-krz 1 p
-krz 100 x@f@p

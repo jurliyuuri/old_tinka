@@ -4,7 +4,11 @@ fun main(args: Array<String>) {
     if(args.size > 0) {
         val outFileOptionIndex = args.indexOf("-o")
         if(outFileOptionIndex == -1) {
-            val transpiler = TinkaTranspiler(args)
+            val transpiler = object : TinkaTranscompiler(args) {
+                protected override fun write(outFile: String) {
+                }
+            }
+
             transpiler.run("a.out")
         }
         else if(outFileOptionIndex == args.size - 1){
@@ -14,7 +18,11 @@ fun main(args: Array<String>) {
         else {
             val outFileIndex = outFileOptionIndex + 1
             val inFiles = args.filterIndexed { index, _ -> (index != outFileIndex && index != outFileOptionIndex) }
-            val transpiler = TinkaTranspiler(inFiles)
+            val transpiler = object : TinkaTranscompiler(inFiles) {
+                protected override fun write(outFile: String) {
+                }
+            }
+
             transpiler.run(args[outFileIndex])
         }
     }

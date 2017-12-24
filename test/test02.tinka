@@ -1,23 +1,29 @@
 -- fi文の例
 
-anax p
-anax F
-krz 3 p
-
-fi p xtlo 5
+cersva _fasal
 rinyv
-    fi p xtlo 1
+    anax p
+    anax F
+    krz 3 p
+
+    fi p xtlo 5
     rinyv
-        krz 2 F
+        fi p xtlo 1
+        rinyv
+            krz 2 F
+        situv
+
+        fi p llo 1
+        rinyv
+            krz 1 F
+        situv
     situv
 
-    fi p llo 1
+    fi p llo 5
     rinyv
-        krz 1 F
+        krz 0 F
     situv
+
+    dosnud 0
 situv
 
-fi p llo 5
-rinyv
-    krz 0 F
-situv

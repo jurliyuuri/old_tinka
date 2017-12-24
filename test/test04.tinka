@@ -3,11 +3,16 @@
 
 xok jyvied
 
-anax p
-anax F
+cersva _fasal
+rinyv
+    anax p
+    anax F
 
-fenxeo jyvied 10 30 el p
-fenxeo '3126834864 p el F
-fenxeo jyvied 50 30 el p
-fenxeo '3126834864 p el F
+    fenxeo jyvied 10 30 el p
+    fenxeo '3126834864 p el F
+    fenxeo jyvied 50 30 el p
+    fenxeo '3126834864 p el F
+
+    dosnud 0
+situv
 
