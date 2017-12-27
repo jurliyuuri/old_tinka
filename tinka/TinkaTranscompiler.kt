@@ -283,13 +283,14 @@ abstract class TinkaTranscompiler(val inFiles: Array<String>) {
                         if(setVarName == "niv") {
                             this.expressions.add(Fenxeo(label, operandList, Anakswa))
                         }
-
-                        val setVar = toOperand(setVarName)
-                        if(setVar is AnaxName) {
-                            this.expressions.add(Fenxeo(label, operandList, setVar))
-                        }
                         else {
-                            throw RuntimeException("Not variable")
+                            val setVar = toOperand(setVarName)
+                            if(setVar is AnaxName) {
+                                this.expressions.add(Fenxeo(label, operandList, setVar))
+                            }
+                            else {
+                                throw RuntimeException("Not variable")
+                            }
                         }
                     }
                 }
