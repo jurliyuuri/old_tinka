@@ -49,7 +49,7 @@ class TinkaTo2003lk : TinkaTranscompiler {
                 is Anax -> {
                     useVarStack += opd.length
                     writer.println("nta ${(opd.length * 4)} f5")
-                    varDictionary[opd.varName] = VarData(useVarStack.toLong())
+                    varDictionary[opd.varName] = VarData(useVarStack.toLong(), opd.pointer)
                 }
                 is Rinyv -> {
                     val label = rinyvStack[0]
@@ -80,11 +80,7 @@ class TinkaTo2003lk : TinkaTranscompiler {
                 }
                 is Fenxeo -> {
                     opd.arguments.forEachIndexed { i, x ->
-                        //if(x.pointer) {
-                        //}
-                        //else {
-                            writer.println("nta 4 f5 krz ${convert(writer, x, i + 1)} f5@")
-                        //}
+                        writer.println("nta 4 f5 krz ${convertFenxeo(writer, x, i + 1)} f5@")
                     }
                     if(opd.setVar is Anakswa) {
                         writer.println("nta 4 f5 inj ${opd.funcName} xx f5@ ata ${((opd.arguments.size + 1) * 4)} f5")
@@ -102,7 +98,7 @@ class TinkaTo2003lk : TinkaTranscompiler {
                 is Cersva -> {
                     useVarStack = 0
                     for(argOpd in opd.arguments) {
-                        varDictionary[argOpd.varName] = VarData(useVarStack.toLong())
+                        varDictionary[argOpd.varName] = VarData(useVarStack.toLong(), argOpd.pointer)
                         useVarStack += argOpd.length
                     }
                     cersvaArgCount = useVarStack
@@ -123,18 +119,52 @@ class TinkaTo2003lk : TinkaTranscompiler {
             }
         }
     }
+
+    private fun convertFenxeo(writer: PrintWriter, opd: TinkaOperand, count: Int = 0): String {
+        return when(opd) {
+            is Constant -> opd.value
+            is AnaxName -> {
+                val varData = varDictionary[opd.varName] as VarData
+                if(opd.pointer) {
+                    writer.print("krz ${(useVarStack - varData.value.toInt() + count) * 4} f0 ")
+                    writer.print("ata f5 f0 ")
+                    return "f0"
+                }
+
+                val pos = convert(writer, opd.pos, count)
+                if(opd.pos is Constant) {
+                    return "f5+${(useVarStack - varData.value.toInt() + pos.toInt() + count) * 4}@"
+                }
+                else {
+                    writer.print("krz ${pos} f0 ")
+                    writer.print("ata ${useVarStack - varData.value.toInt() + count} f0 ")
+                    writer.print("dro 2 f0 ")
+                    return "f5+f0@"
+                }
+            }
+            else -> throw RuntimeException("Invalid arguments: '${opd}'")
+        }
+    }
+
     private fun convert(writer: PrintWriter, opd: TinkaOperand, count: Int = 0): String {
         return when(opd) {
             is Constant -> opd.value
             is AnaxName -> {
+                val varData = varDictionary[opd.varName] as VarData
+                if(varData.pointer) {
+                    writer.print("krz ${(useVarStack - varData.value.toInt() + count) * 4} f0 ")
+                    writer.print("ata f5 f0 ")
+                    return "f0@"
+                }
+
                 val pos = convert(writer, opd.pos, count)
                 if(opd.pos is Constant) {
-                    return "f5+${(useVarStack - (varDictionary[opd.varName] as VarData).value.toInt() + pos.toInt() + count) * 4}@"
+                    return "f5+${(useVarStack - varData.value.toInt() + pos.toInt() + count) * 4}@"
                 }
                 else {
-                    writer.println("krz ${pos} f0")
-                    writer.println("ata ${useVarStack - (varDictionary[opd.varName] as VarData).value.toInt() + count} f0")
-                    writer.println("dro 2 f0")
+                    writer.print("krz ${pos} f0 ")
+                    writer.print("ata ${useVarStack - varData.value.toInt() + count} f0 ")
+                    writer.print("dro 2 f0 ")
                     return "f5+f0@"
                 }
             }

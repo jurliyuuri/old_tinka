@@ -1,0 +1,27 @@
+-- 関数作成・使用の例
+cersva _fasal
+rinyv
+    anax p
+    anax F@10
+    anax f
+
+    krz 11 p
+    krz 13 F@0
+    krz 17 f
+
+    fenxeo test1 p F@ el niv
+    fenxeo test2 p F@0 el f
+
+    dosnud 0
+situv
+
+cersva test1 a b@
+rinyv
+    krz a b@1
+situv
+
+cersva test2 a b
+rinyv
+    ata b a
+    dosnud a
+situv
