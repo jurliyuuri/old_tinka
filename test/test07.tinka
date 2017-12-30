@@ -1,4 +1,4 @@
--- 関数作成・使用の例
+-- 関数作成・使用の例2
 cersva _fasal
 rinyv
     anax p
@@ -7,10 +7,12 @@ rinyv
     krz 11 p
     krz 13 F@0
 
+    -- 配列を参照渡しすることは不可
     fenxeo test p F@0 el F@1
     fenxeo test p F@1 el F@2
 situv
 
+-- 配列は引数に出来ない
 cersva test a b
 rinyv
     ata a b
