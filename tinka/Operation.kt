@@ -3,7 +3,7 @@ package tinka
 sealed class TinkaExpression()
 data class Kue(val labelName: String) : TinkaExpression()
 data class Xok(val labelName: String) : TinkaExpression()
-data class Anax(val varName: String, val pointer: Boolean = false, val length: Int = 1) : TinkaExpression()
+data class Anax(val varName: String, val pointer: Boolean = false, val length: Long = 1) : TinkaExpression()
 data class Fi(val left: TinkaOperand, val compare: String, val right: TinkaOperand): TinkaExpression()
 data class Fal(val left: TinkaOperand, val compare: String, val right: TinkaOperand): TinkaExpression()
 data class Cersva(val funcName: String, val arguments: List<Anax>) : TinkaExpression()
@@ -15,6 +15,6 @@ data class Operation(val mnemonic: String, val arguments: List<TinkaOperand>) : 
 
 sealed class TinkaOperand()
 data class Constant(val value: String) : TinkaOperand()
-data class AnaxName(val varName: String, val pointer: Boolean = false, val pos: TinkaOperand = Constant("0")) : TinkaOperand()
+data class AnaxName(val varName: String, val pos: TinkaOperand = Constant("0")) : TinkaOperand()
 object Anakswa : TinkaOperand()
 

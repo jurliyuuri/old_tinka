@@ -27,8 +27,8 @@ abstract class TinkaTranscompiler(val inFiles: Array<String>) {
     protected val expressions: MutableList<TinkaExpression>
     protected val kuexok: MutableMap<String, Boolean>
 
-    protected var useVarStack: Int
-    protected val varDictionary: MutableMap<String, VarData>
+    protected var useVarStack: Long
+    protected val varDictionary: MutableMap<String, Long>
     protected val countMap: MutableMap<String, Int>
     protected val rinyvStack: MutableList<String>
     var hasMain: Boolean
@@ -161,7 +161,7 @@ abstract class TinkaTranscompiler(val inFiles: Array<String>) {
                     val label = wordList[++i]
                     val anaxVar = if(label.indexOf("@") != -1) {
                         val split = label.split("@")
-                        Anax(split[0], true, split[1].toInt())
+                        Anax(split[0], true, split[1].toLong())
                     } else {
                         Anax(label)
                     }
@@ -310,10 +310,10 @@ abstract class TinkaTranscompiler(val inFiles: Array<String>) {
         } else if(word.indexOf("@") != -1) {
             val split = word.split("@", ignoreCase = false, limit = 2)
             if(split[1] == "") {
-                AnaxName(split[0], true)
+                throw RuntimeException("Invalid operand '${word}'")
             }
             else {
-                AnaxName(split[0], false, toOperand(split[1]))
+                AnaxName(split[0], toOperand(split[1]))
             }
         } else {
             AnaxName(word)

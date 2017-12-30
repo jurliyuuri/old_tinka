@@ -23,33 +23,44 @@ class TinkaTo2003lk : TinkaTranscompiler {
 
     private fun writeExpression(expressions: List<TinkaExpression>, writer: PrintWriter) {
         val isFunc = expressions.any { x -> x is Cersva }
-        var cersvaArgCount = 0
+        var cersvaArgCount: Long = 0
 
         for(opd in expressions) {
             when(opd) {
                 is Kue -> writer.println("kue ${opd.labelName}")
                 is Xok -> writer.println("xok ${opd.labelName}")
                 is Fi -> {
-                    val lval = convert(writer, opd.left)
-                    val rval = convert(writer, opd.right)
-                    writer.println("fi ${lval} ${rval} ${opd.compare}")
+                    val (lval, lpre) = convert(opd.left)
+                    val (rval, rpre) = convert(opd.right)
+
+                    writer.print(lpre)
+                    writer.print("krz ${lval} f0 ")
+                    writer.print(rpre)
+
+                    writer.println("fi f0 ${rval} ${opd.compare}")
+
                     rinyvStack.add(0, "fi${countMap["fi"]}")
-                    countMap["fi"] = (countMap["fi"] as Int) + 1
+                    countMap["fi"] = countMap["fi"]!! + 1
                 }
                 is Fal -> {
-                    val lval = convert(writer, opd.left)
-                    val rval = convert(writer, opd.right)
-                    writer.println("fi ${lval} ${rval} ${opd.compare} l' fal-rinyv${(countMap["fal-rinyv"])}")
+                    val (lval, lpre) = convert(opd.left)
+                    val (rval, rpre) = convert(opd.right)
+
+                    writer.print(lpre)
+                    writer.print("krz ${lval} f0 l' fal-rinyv${(countMap["fal-rinyv"])} ")
+                    writer.print(rpre)
+
+                    writer.println("fi f0 ${rval} ${opd.compare}")
                     rinyvStack.add(0, "fal-rinyv${(countMap["fal-rinyv"])}");
                     rinyvStack.add(0, "fal${countMap["fal"]}");
 
-                    countMap["fal-rinyv"] = (countMap["fal-rinyv"] as Int) + 1
-                    countMap["fal"] = (countMap["fal"] as Int)+ 1
+                    countMap["fal-rinyv"] = countMap["fal-rinyv"]!! + 1
+                    countMap["fal"] = countMap["fal"]!! + 1
                 }
                 is Anax -> {
                     useVarStack += opd.length
                     writer.println("nta ${(opd.length * 4)} f5")
-                    varDictionary[opd.varName] = VarData(useVarStack.toLong(), opd.pointer)
+                    varDictionary[opd.varName] = useVarStack
                 }
                 is Rinyv -> {
                     val label = rinyvStack[0]
@@ -68,104 +79,91 @@ class TinkaTo2003lk : TinkaTranscompiler {
                             writer.println("nll ${label}")
                         }
                         opd.count == 1 && isFunc -> {
-                            if(useVarStack > cersvaArgCount) {
-                                writer.println("ata ${((useVarStack - cersvaArgCount) * 4)} f5 l' dosnud${countMap["dosnud"]}")
-                                writer.println("krz f5@ xx")
+                            if(useVarStack > cersvaArgCount + 1) {
+                                writer.println("ata ${((useVarStack - cersvaArgCount - 1) * 4)} f5 l' dosnud${countMap["dosnud"]}")
+                                writer.println("krz f5@ f1 ata 4 f5 krz f5@ xx")
                             }
                             else {
-                                writer.println("krz f5@ xx l' dosnud${countMap["dosnud"]}")
+                                writer.println("ata 4 f5 l' dosnud${countMap["dosnud"]} krz f5@ f1 krz f5@ xx")
                             }
                         }
                     }
                 }
                 is Fenxeo -> {
                     opd.arguments.forEachIndexed { i, x ->
-                        writer.println("nta 4 f5 krz ${convertFenxeo(writer, x, i + 1)} f5@")
+                        val (pos, preprocess) = convert(x, i + 1)
+
+                        writer.print(preprocess)
+                        writer.println("nta 4 f5 krz ${pos} f5@")
                     }
                     if(opd.setVar is Anakswa) {
                         writer.println("nta 4 f5 inj ${opd.funcName} xx f5@ ata ${((opd.arguments.size + 1) * 4)} f5")
                     }
                     else {
-                        writer.println("nta 4 f5 inj ${opd.funcName} xx f5@ ata ${((opd.arguments.size + 1) * 4)} f5 krz f0 ${convert(writer, opd.setVar)}")
+                        val (pos, preprocess) = convert(opd.setVar)
+
+                        writer.print("nta 4 f5 inj ${opd.funcName} xx f5@ ata ${((opd.arguments.size + 1) * 4)} f5 ")
+                        writer.print(preprocess)
+                        writer.println("krz f0 ${pos}")
                     }
                 }
                 is Operation -> {
-                    val args = opd.arguments.fold(StringBuilder()) {
-                        buffer, x -> buffer.append(" ").append(convert(writer, x))
-                    }.toString()
-                    writer.println("${opd.mnemonic}${args}")
+                    var subAddr: Long = 0
+                    val buffer = StringBuilder()
+                    for(x in opd.arguments) {
+                        val (pos, preprocess) = convert(x)
+
+                        if(preprocess != "" && opd.arguments.last() != x) {
+                            writer.print(preprocess)
+
+                            val addr = ((++subAddr) * -4) and 0x00000000FFFFFFFF
+                            writer.print("krz ${pos} f5+${addr}@ ")
+                            buffer.append(" ").append("f5+${addr}@")
+                        }
+                        else {
+                            writer.print(preprocess)
+                            buffer.append(" ").append(pos)
+                        }
+                    }
+
+                    writer.println("${opd.mnemonic}${buffer.toString()}")
                 }
                 is Cersva -> {
                     useVarStack = 0
                     for(argOpd in opd.arguments) {
-                        varDictionary[argOpd.varName] = VarData(useVarStack.toLong(), argOpd.pointer)
+                        varDictionary[argOpd.varName] = useVarStack
                         useVarStack += argOpd.length
                     }
                     cersvaArgCount = useVarStack
 
-                    writer.println("\nnll ${opd.funcName}")
+                    writer.println("\nnll ${opd.funcName} nta 4 f5 krz f1 f5@")
+                    useVarStack++
                     rinyvStack.add(0, "${opd.funcName}")
-                    countMap["dosnud"] = (countMap["dosnud"] as Int) + 1
+                    countMap["dosnud"] = countMap["dosnud"]!! + 1
                 }
                 is Dosnud -> {
-                    if(isFunc) {
-                        writer.println("krz ${convert(writer, opd.retVal)} f0")
-                        writer.println("malkrz dosnud${countMap["dosnud"]} xx")
-                    }
-                    else {
-                        writer.println("malkrz dosnud0 xx")
-                    }
+                    val (pos, preprocess) = convert(opd.retVal)
+
+                    writer.print(preprocess)
+                    writer.println("krz ${pos} f0")
+                    writer.println("krz dosnud${countMap["dosnud"]} xx")
                 }
             }
         }
     }
 
-    private fun convertFenxeo(writer: PrintWriter, opd: TinkaOperand, count: Int = 0): String {
+    private fun convert(opd: TinkaOperand, count: Int = 0): Pair<String, String> {
         return when(opd) {
-            is Constant -> opd.value
+            is Constant -> Pair(opd.value, "")
             is AnaxName -> {
-                val varData = varDictionary[opd.varName] as VarData
-                if(opd.pointer) {
-                    writer.print("krz ${(useVarStack - varData.value.toInt() + count) * 4} f0 ")
-                    writer.print("ata f5 f0 ")
-                    return "f0"
-                }
+                val (pos, preprocess) = convert(opd.pos, count)
+                val varData = varDictionary[opd.varName]!!
 
-                val pos = convert(writer, opd.pos, count)
                 if(opd.pos is Constant) {
-                    return "f5+${(useVarStack - varData.value.toInt() + pos.toInt() + count) * 4}@"
+                    return Pair("f5+${(useVarStack - varData + pos.toLong() + count) * 4}@", preprocess)
                 }
                 else {
-                    writer.print("krz ${pos} f0 ")
-                    writer.print("ata ${useVarStack - varData.value.toInt() + count} f0 ")
-                    writer.print("dro 2 f0 ")
-                    return "f5+f0@"
-                }
-            }
-            else -> throw RuntimeException("Invalid arguments: '${opd}'")
-        }
-    }
-
-    private fun convert(writer: PrintWriter, opd: TinkaOperand, count: Int = 0): String {
-        return when(opd) {
-            is Constant -> opd.value
-            is AnaxName -> {
-                val varData = varDictionary[opd.varName] as VarData
-                if(varData.pointer) {
-                    writer.print("krz ${(useVarStack - varData.value.toInt() + count) * 4} f0 ")
-                    writer.print("ata f5 f0 ")
-                    return "f0@"
-                }
-
-                val pos = convert(writer, opd.pos, count)
-                if(opd.pos is Constant) {
-                    return "f5+${(useVarStack - varData.value.toInt() + pos.toInt() + count) * 4}@"
-                }
-                else {
-                    writer.print("krz ${pos} f0 ")
-                    writer.print("ata ${useVarStack - varData.value.toInt() + count} f0 ")
-                    writer.print("dro 2 f0 ")
-                    return "f5+f0@"
+                    return Pair("f5+f1@", preprocess + "krz ${pos} f1 ata ${useVarStack - varData + count} f1 dro 2 f1 ")
                 }
             }
             else -> throw RuntimeException("Invalid arguments: '${opd}'")
