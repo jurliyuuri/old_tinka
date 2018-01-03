@@ -22,7 +22,7 @@ class TinkaTo2003lk : TinkaTranscompiler {
     }
 
     private fun writeExpression(expressions: List<TinkaExpression>, writer: PrintWriter) {
-        val isFunc = expressions.any { x -> x is Cersva }
+        //val isFunc = expressions.any { x -> x is Cersva }
         var cersvaArgCount: Long = 0
 
         for(opd in expressions) {
@@ -78,13 +78,13 @@ class TinkaTo2003lk : TinkaTranscompiler {
                             writer.println("krz ${loop} xx")
                             writer.println("nll ${label}")
                         }
-                        opd.count == 1 && isFunc -> {
+                        opd.count == 1 -> {
                             if(useVarStack > cersvaArgCount + 1) {
                                 writer.println("ata ${((useVarStack - cersvaArgCount - 1) * 4)} f5 l' dosnud${countMap["dosnud"]}")
                                 writer.println("krz f5@ f1 ata 4 f5 krz f5@ xx")
                             }
                             else {
-                                writer.println("ata 4 f5 l' dosnud${countMap["dosnud"]} krz f5@ f1 krz f5@ xx")
+                                writer.println("krz f5@ f1 l' dosnud${countMap["dosnud"]} ata 4 f5 krz f5@ xx")
                             }
                         }
                     }
