@@ -21,6 +21,10 @@ abstract class TinkaTranscompiler(val inFiles: Array<String>) {
 				Pair("xtlonys", "llonys"), Pair("xylonys", "xolonys"),
 				Pair("llonys", "xtlonys"), Pair("xolonys", "xylonys"))
 
+		private val tinkaOperatorList = listOf(
+				"anax","cersva","dosnud","fenxeo",
+				"rinyv","situv","fal","el")
+
 		private val retCharCodes = arrayOf('\n'.toInt(), '\r'.toInt())
 	}
 
@@ -161,9 +165,20 @@ abstract class TinkaTranscompiler(val inFiles: Array<String>) {
 					val label = wordList[++i]
 					val anaxVar = if(label.indexOf("@") != -1) {
 						val split = label.split("@")
-						Anax(split[0], true, split[1].toLong())
+
+						if(isInvalidName(split[0]) || isInvalidName(split[1])) {
+							throw RuntimeException("Invalid anax name '${label}'")
+						}
+						else {
+							Anax(split[0], true, split[1].toLong())
+						}
 					} else {
-						Anax(label)
+						if(isInvalidName(label)) {
+							throw RuntimeException("Invalid anax name '${label}'")
+						}
+						else {
+							Anax(label)
+						}
 					}
 
 					this.expressions.add(anaxVar)
@@ -219,7 +234,7 @@ abstract class TinkaTranscompiler(val inFiles: Array<String>) {
 
 					fun toAnax(word: String): Anax {
 						return if(word.indexOf("@") != -1) {
-							Anax(word.dropLast(1), true)
+							throw RuntimeException("Can't set variable: ${word}")
 						}
 						else {
 							Anax(word)
@@ -229,9 +244,6 @@ abstract class TinkaTranscompiler(val inFiles: Array<String>) {
 					val label = wordList[++i]
 					if(label[0] in '0'..'9') {
 						throw RuntimeException("Bad cersva-akrapt '${label}'")
-					}
-					else if(label == "'3126834864") {
-						throw RuntimeException("Already define '3126834864")
 					}
 
 					if(label == "_fasal") {
@@ -245,7 +257,7 @@ abstract class TinkaTranscompiler(val inFiles: Array<String>) {
 						throw RuntimeException("Not found 'rinyv'")
 					}
 
-					this.expressions.add(Cersva(label, subList.take(rinyvIndex).map{ x -> toAnax(x) }.toList()))
+					this.expressions.add(Cersva(label, subList.take(rinyvIndex).map { x -> toAnax(x) }.toList()))
 					i += rinyvIndex
 					isFuncMode = true
 				}
@@ -264,9 +276,6 @@ abstract class TinkaTranscompiler(val inFiles: Array<String>) {
 					var label = wordList[++i]
 					if(label[0] in '0'..'9') {
 						throw RuntimeException("Bad cersva name: '${label}'")
-					}
-					if(label == "'3126834864") {
-						label = "3126834864"
 					}
 
 					val subList = wordList.drop(i + 1)
@@ -309,7 +318,8 @@ abstract class TinkaTranscompiler(val inFiles: Array<String>) {
 			Constant(word)
 		} else if(word.indexOf("@") != -1) {
 			val split = word.split("@", ignoreCase = false, limit = 2)
-			if(split[1] == "") {
+
+			if(split[0] == "" || split[1] == "") {
 				throw RuntimeException("Invalid operand '${word}'")
 			}
 			else {
@@ -318,6 +328,15 @@ abstract class TinkaTranscompiler(val inFiles: Array<String>) {
 		} else {
 			AnaxName(word)
 		}
+	}
+
+	private fun isInvalidName(word: String): Boolean {
+		return isKeyword(word) || word == ""
+	}
+
+	private fun isKeyword(word: String): Boolean {
+		return (word in monoOperatorList) || (word in biOperatorList) || (word in triOperatorList)
+			|| (word in tinkaOperatorList) || (word in compareMap)
 	}
 
 	abstract protected fun write(outFile: String)
